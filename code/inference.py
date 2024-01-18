@@ -4,7 +4,8 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import numpy
 from scipy.special import softmax
 
-def allot(prediction):
+# custom functions that we are going to use to transform the results into desired formats
+def allot(prediction): 
     x = prediction.index(max(prediction))
     if x == 0:
         return "negative"
@@ -15,6 +16,7 @@ def allot(prediction):
     else:
         return "unknown"
 
+# model function - do not change
 def model_fn(model_dir):
     """
     Load the model for inference
@@ -30,6 +32,7 @@ def model_fn(model_dir):
     model_dict = {'model': model, 'tokenizer':tokenizer}
     return model_dict
 
+# predict function - do not change
 def predict_fn(input_data, model):
     """
     Apply model to the incoming request
@@ -43,7 +46,7 @@ def predict_fn(input_data, model):
 
     result = bert_model(**encoded_input)
 
-    # post processing of the result
+    # custom post processing of the result - can be altered
     scores = result[0][0].detach().numpy()
     scores_final = softmax(scores)
     scores_final = list(scores_final)
@@ -54,6 +57,7 @@ def predict_fn(input_data, model):
     }
     return final
 
+# input function - can be altered to change the preprocessing of the input request
 def input_fn(request_body, request_content_type):
     """
     Deserialize and prepare the prediction input
@@ -67,12 +71,14 @@ def input_fn(request_body, request_content_type):
         
     return request["inputs"] 
 
+# output function - can be altered to change the post processing of the final response
 def output_fn(prediction, response_content_type):
     """
     Serialize and prepare the prediction output
     """
     
-    #float32 to float conversion
+    # float32 to float conversion 
+    # custom transformation
     prediction["scores"] = [float(score) for score in prediction["scores"]]
     
     if response_content_type == "application/json":
